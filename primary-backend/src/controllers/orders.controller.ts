@@ -23,9 +23,9 @@ export const newOrder = async (req: any, res: express.Response) => {
     }
 
     const enrichedObject: OrderRequest = {
-        user_id: orderObject.id,
+        user_id: req.id,
         quantity: new Prisma.Decimal(orderObject.quantity),
-        idempotency_key: orderObject.idempotency_key,
+        idempotency_key: Date.now().toString(),
         price: new Prisma.Decimal(orderObject.price),
         remaining_quantity: new Prisma.Decimal(orderObject.quantity),
         side: orderObject.side,
