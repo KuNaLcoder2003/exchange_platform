@@ -47,7 +47,9 @@ const STATS = [
     { label: "Open interest", value: "$88.4M" },
 ];
 
-const Dashboard: React.FC<DashboardProps> = ({ pair = "SOL/USDC", onPlaceOrder }) => {
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
+
+const Dashboard: React.FC<DashboardProps> = ({ pair = "SOL/USDC" }) => {
     const [connectionDot] = useState(true);
     const [loggingOut, setLoggingOut] = useState(false);
     const { logout } = useAuth()
@@ -66,11 +68,28 @@ const Dashboard: React.FC<DashboardProps> = ({ pair = "SOL/USDC", onPlaceOrder }
 
     const handlePlaceOrder = async (order: PlaceOrderPayload) => {
         try {
-            await onPlaceOrder?.(order);
-            toast.success(
-                `${order.side === "BUY" ? "Buy" : "Sell"} order placed — ${order.quantity} ${pair.split("/")[0]}${order.price ? ` @ ${order.price}` : " @ market"
-                }`
-            );
+
+            const response = await fetch(`${BACKEND_URL}/api/v1/order/newOrder`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: "include",
+                body: JSON.stringify(order)
+            })
+
+            const data = await response.json()
+
+            if (data.valid) {
+                toast.success(
+                    `${order.side === "BUY" ? "Buy" : "Sell"} order placed — ${order.quantity} ${pair.split("/")[0]}${order.price ? ` @ ${order.price}` : " @ market"
+                    }`
+                );
+            }
+            else {
+                toast.error(data.message)
+            }
+
         } catch (err) {
             console.error(err);
             toast.error("Couldn't place order");
