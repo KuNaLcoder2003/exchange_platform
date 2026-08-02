@@ -1,0 +1,122 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+enum OrderStatus {
+  PENDING
+  PARTIALLY_FILLED
+  FILLED
+  CANCELLED
+  REJECTED
+}
+
+enum OrderSide {
+  BUY
+  SELL
+}
+
+enum OrderType {
+  LIMIT_ORDER 
+  MARKET_ORDER
+}
+
+enum Transaction_Type {
+  WALLET_TOPUP
+  WALLET_WITHDRAW
+}
+
+enum Transaction_Status {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id String @id @default(uuid())
+  email String @unique
+  mobile String @unique
+  password String
+  gender String
+  dob String
+  name String
+  wallet Wallet?
+  created_at DateTime @default(now())
+  updated_ate DateTime @updatedAt
+  order Orders[] @relation("orders-users")
+  transactions Transactions[]
+}
+
+model Wallet {
+  id String @id @default(uuid())
+  user_id String @unique
+  inr_balance Decimal @db.Decimal(20,8)
+  inr_locked Decimal @db.Decimal(20,8)
+  usdt_balance Decimal @db.Decimal(20,8)
+  usdt_locked Decimal @db.Decimal(20,8)
+  user User @relation(fields: [user_id] , references: [id])
+  created_at DateTime @default(now())
+  updated_ate DateTime @updatedAt
+}
+
+model Orders {
+  id String @id @default(uuid())
+  idempotency_key String @unique
+  status OrderStatus
+  quantity Decimal @db.Decimal(20,8)
+  remaining_quantity Decimal @db.Decimal(20,8)
+  price Decimal @db.Decimal(20,8)
+  side OrderSide
+  type OrderType
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  user_id String
+  user User @relation("orders-users" , fields: [user_id] , references: [id])
+  buyTrade Trade[] @relation("buy-orders")
+  sellTrade Trade[] @relation("sell-orders")
+  @@index([status])
+
+  @@index([side])
+
+  @@index([created_at])
+
+  @@index([user_id])
+
+  @@index([price])
+}
+
+model Trade {
+  id String @id @default(uuid())
+  price Decimal
+  quantity Decimal
+  buy_order_id String
+  sell_order_id String
+  buy_order Orders @relation("buy-orders" , fields: [buy_order_id] , references: [id])
+  sell_order Orders @relation("sell-orders" , fields: [sell_order_id] , references: [id])
+  completed_at DateTime @default(now())
+  @@index([buy_order_id])
+
+  @@index([sell_order_id])
+
+  @@index([completed_at])
+}
+
+model Transactions {
+  id String @id @default(uuid())
+  stripe_id String
+  amount Int
+  type Transaction_Type
+  user_id String
+  status Transaction_Status
+  user User @relation(fields: [user_id] , references: [id])
+  created_at DateTime @default(now())
+  updated_ate DateTime @updatedAt
+}
