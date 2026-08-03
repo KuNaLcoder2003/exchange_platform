@@ -22,6 +22,8 @@ export const newOrder = async (req: any, res: express.Response) => {
         return
     }
 
+    console.log(req.email)
+
     const enrichedObject: OrderRequest = {
         user_id: req.id,
         quantity: new Prisma.Decimal(orderObject.quantity),
@@ -31,7 +33,6 @@ export const newOrder = async (req: any, res: express.Response) => {
         side: orderObject.side,
         type: orderObject.type,
         status: "PENDING",
-        email: orderObject.email
     }
 
     try {
@@ -47,7 +48,7 @@ export const newOrder = async (req: any, res: express.Response) => {
         }
 
         /*---------------- Push the enriched object to queue ----------------*/
-        await redisClient.lPush('orders', JSON.stringify({ id: response.id, ...enrichedObject }))
+        await redisClient.lPush('orders', JSON.stringify({ id: response.id, ...enrichedObject, email: req.email }))
 
 
         /*---------------- Update the in-memory OrderBook ----------------*/

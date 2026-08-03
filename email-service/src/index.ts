@@ -432,41 +432,43 @@ async function pickMailJobs() {
     console.log('Connected To redis')
 
     try {
-        while (1) {
-            const entry = await redisClient.brPop('MAIL_SERVICE', 0)
-            console.log(entry)
-            const parsed_entry = JSON.parse(entry?.element!) as { event: "TRADE_EXECUTED" | "ORDER_CANCELLED" | "TRANSACTION_WALLET_TOPUP", data: any }
-            console.log(parsed_entry.data)
-            switch (parsed_entry.event) {
-                case "TRADE_EXECUTED":
-                    const body = TradeExecuteMail(parsed_entry.data, parsed_entry.data.orderId)
-                    await mail([parsed_entry.data.email], body)
-                    let trades = await parsed_entry.data.trades;
-                    if (parsed_entry.data.orderSide == "SELL") {
-                        for (let i = 0; i < trades.length; i++) {
-                            const body = MatchedOrderMail(trades[i], "SELL")
-                            await mail([trades[i].matched_order_email], body)
-                        }
-                    } else {
-                        for (let i = 0; i < trades.length; i++) {
-                            const body = MatchedOrderMail(trades[i], "BUY")
-                            await mail([trades[i].matched_order_email], body)
-                        }
-                    }
-                    break;
 
-                case "ORDER_CANCELLED":
-                    break;
-                case "TRANSACTION_WALLET_TOPUP":
-                    const attachments = parsed_entry.data.attachments.map((attachment: any) => ({
-                        filename: attachment.fileName,
-                        contentType: attachment.contentType,
-                        content: Buffer.from(attachment.content.data),
-                    }));
-                    const mail_body = TransactionMailBody(parsed_entry.data.user_name, parsed_entry.data.user_id, Number(parsed_entry.data.amount), parsed_entry.data.merchant_id, Number(parsed_entry.data.wallet_balance))
-                    await mail([parsed_entry.data.email], mail_body, attachments)
-                    break;
-            }
+        const entry = await redisClient.brPop('MAIL_SERVICE', 0)
+        if (!entry) {
+            return
+        }
+        console.log(entry)
+        const parsed_entry = JSON.parse(entry?.element!) as { event: "TRADE_EXECUTED" | "ORDER_CANCELLED" | "TRANSACTION_WALLET_TOPUP", data: any }
+        console.log(parsed_entry.data)
+        switch (parsed_entry.event) {
+            case "TRADE_EXECUTED":
+                const body = TradeExecuteMail(parsed_entry.data, parsed_entry.data.orderId)
+                await mail([parsed_entry.data.email], body)
+                let trades = await parsed_entry.data.trades;
+                if (parsed_entry.data.orderSide == "SELL") {
+                    for (let i = 0; i < trades.length; i++) {
+                        const body = MatchedOrderMail(trades[i], "SELL")
+                        await mail([trades[i].matched_order_email], body)
+                    }
+                } else {
+                    for (let i = 0; i < trades.length; i++) {
+                        const body = MatchedOrderMail(trades[i], "BUY")
+                        await mail([trades[i].matched_order_email], body)
+                    }
+                }
+                break;
+
+            case "ORDER_CANCELLED":
+                break;
+            case "TRANSACTION_WALLET_TOPUP":
+                const attachments = parsed_entry.data.attachments.map((attachment: any) => ({
+                    filename: attachment.fileName,
+                    contentType: attachment.contentType,
+                    content: Buffer.from(attachment.content.data),
+                }));
+                const mail_body = TransactionMailBody(parsed_entry.data.user_name, parsed_entry.data.user_id, Number(parsed_entry.data.amount), parsed_entry.data.merchant_id, Number(parsed_entry.data.wallet_balance))
+                await mail([parsed_entry.data.email], mail_body, attachments)
+                break;
         }
 
     } catch (error) {
@@ -474,4 +476,6 @@ async function pickMailJobs() {
     }
 }
 
-pickMailJobs()
+while (1) {
+    await pickMailJobs()
+}
