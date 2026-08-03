@@ -75,35 +75,35 @@ export async function matchSellOrders(incomingOrder: Order) {
 
         let trade!: Trade
         if (Number(buyOrders[i]?.price) >= Number(copyObject.price)) {
-            let ask_quantity = Number(buyOrders[i]?.remaining_quantity) // buy
-            let bid_quantity = Number(copyObject.remaining_quantity) // sell
+            let buy_quantity = Number(buyOrders[i]?.remaining_quantity) // buy
+            let sell_quantity = Number(copyObject.remaining_quantity) // sell
             let qunatity_traded = 0;
-            if (ask_quantity > bid_quantity) {
-                qunatity_traded = bid_quantity
-                ask_quantity = ask_quantity - bid_quantity
-                bid_quantity = 0;
+            if (buy_quantity > sell_quantity) {
+                qunatity_traded = sell_quantity
+                buy_quantity = buy_quantity - sell_quantity
+                sell_quantity = 0;
                 buyOrders[i]!.status = "PARTIALLY_FILLED"
-            } else if (ask_quantity < bid_quantity) {
+            } else if (buy_quantity < sell_quantity) {
 
-                qunatity_traded = ask_quantity
-                bid_quantity = bid_quantity - ask_quantity
-                ask_quantity = 0
+                qunatity_traded = buy_quantity
+                sell_quantity = sell_quantity - buy_quantity
+                buy_quantity = 0
                 copyObject.status = "PARTIALLY_FILLED"
                 completely_matches_buy_orders.push(buyOrders[i]!)
                 buyOrders[i]!.status = "FILLED"
             } else {
-                qunatity_traded = ask_quantity
-                ask_quantity = 0
+                qunatity_traded = buy_quantity
+                buy_quantity = 0
                 sellOrder_completely_matched = true
-                bid_quantity = 0
+                sell_quantity = 0
                 completely_matches_buy_orders.push(buyOrders[i]!);
                 // copyObject.status = "FILLED"
                 buyOrders[i]!.status = "FILLED"
             }
 
-            buyOrders[i]!.remaining_quantity = `${ask_quantity}`;
+            buyOrders[i]!.remaining_quantity = `${buy_quantity}`;
             // update the order book also at the same time
-            copyObject.remaining_quantity = `${bid_quantity}`;
+            copyObject.remaining_quantity = `${sell_quantity}`;
             trade = {
                 buy_order_id: buyOrders[i]!?.id,
                 sell_order_id: incomingOrder.id,
@@ -114,7 +114,7 @@ export async function matchSellOrders(incomingOrder: Order) {
                 sell_quantity_remaining: Number(copyObject.remaining_quantity)
             }
             matched_arr.push(trade)
-            if (bid_quantity == 0) {
+            if (sell_quantity == 0) {
                 sellOrder_completely_matched = true
                 copyObject.status = "FILLED"
                 break
@@ -194,48 +194,48 @@ export async function matchBuyOrder(incomingOrder: Order) {
 
         let trade!: Trade
         if (Number(sellOrders[i]?.price) <= Number(copyObject.price)) {
-            let bid_quantity = Number(sellOrders[i]?.remaining_quantity) // sell
-            let ask_quantity = Number(copyObject.remaining_quantity) // buys
+            let sell_quantity = Number(sellOrders[i]?.remaining_quantity) // sell
+            let buy_quantity = Number(copyObject.remaining_quantity) // buys
             let qunatity_traded = 0;
-            if (ask_quantity > bid_quantity) {
+            if (buy_quantity > sell_quantity) {
                 console.log('BUY QUANTS > SELL QUANTS')
-                qunatity_traded = bid_quantity
-                ask_quantity = ask_quantity - bid_quantity
-                bid_quantity = 0;
+                qunatity_traded = sell_quantity
+                buy_quantity = buy_quantity - sell_quantity
+                sell_quantity = 0;
                 copyObject.status = "PARTIALLY_FILLED"
                 sellOrders[i]!.status = "FILLED"
-                completely_matches_sell_orders.push(orderBook[i]!)
-            } else if (ask_quantity < bid_quantity) {
+                completely_matches_sell_orders.push(sellOrders[i]!)
+            } else if (buy_quantity < sell_quantity) {
                 console.log('BUY QUANTS < SELL QUANTS')
-                qunatity_traded = ask_quantity
-                bid_quantity = bid_quantity - ask_quantity
-                ask_quantity = 0
+                qunatity_traded = buy_quantity
+                sell_quantity = sell_quantity - buy_quantity
+                buy_quantity = 0
                 copyObject.status = "FILLED"
                 sellOrders[i]!.status = "PARTIALLY_FILLED"
             } else {
                 console.log('EQUAL')
-                qunatity_traded = ask_quantity
-                ask_quantity = 0
-                bid_quantity = 0
+                qunatity_traded = buy_quantity
+                buy_quantity = 0
+                sell_quantity = 0
                 sellOrders[i]!.status = "FILLED"
                 completely_matches_sell_orders.push(sellOrders[i]!)
                 buyOrder_completely_matched = true
                 copyObject.status = "FILLED"
             }
 
-            sellOrders[i]!.remaining_quantity = `${bid_quantity}`
-            matched_arr.push(trade)
-            copyObject.remaining_quantity = `${ask_quantity}`;
+            sellOrders[i]!.remaining_quantity = `${sell_quantity}`
+            copyObject.remaining_quantity = `${buy_quantity}`;
             trade = {
-                buy_order_id: sellOrders[i]!?.id,
-                sell_order_id: incomingOrder.id,
+                buy_order_id: copyObject.id,
+                sell_order_id: sellOrders[i]!.id,
                 qunatity: qunatity_traded,
                 matched_order_email: sellOrders[i]!.email,
-                price: Number(incomingOrder.price),
+                price: Number(sellOrders[i]!.price),
                 buy_quantity_remaining: Number(copyObject.remaining_quantity),
                 sell_quantity_remaining: Number(sellOrders[i]!.remaining_quantity)
             }
-            if (ask_quantity == 0) {
+            matched_arr.push(trade)
+            if (buy_quantity == 0) {
                 console.log('Here')
                 buyOrder_completely_matched = true
                 break;
