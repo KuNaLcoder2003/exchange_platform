@@ -9,6 +9,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Dashboard from './components/DashBoard';
 import WalletPage from './components/Wallet';
 import PaymetsPage from './pages/AddFundPage';
+import OrdersPage from './pages/OrdersPage';
 type OrderStatus =
   "PENDING" |
   "PARTIALLY_FILLED" |
@@ -100,6 +101,7 @@ function App() {
 
             <Route element={<ProtectedRoute />}>
               <Route path='/addMoney' element={<PaymetsPage />} />
+              <Route path='/orders' element={<OrdersPage />} />
               <Route
                 path="/home"
                 element={<Dashboard />}
