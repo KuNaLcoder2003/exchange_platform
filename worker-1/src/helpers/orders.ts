@@ -8,6 +8,7 @@ type Trade = {
     buy_quantity_remaining: Number
     sell_quantity_remaining: Number
     matched_order_email: string
+    matched_user_id: string
 }
 
 type OrderStatus =
@@ -109,6 +110,7 @@ export async function matchSellOrders(incomingOrder: Order) {
                 sell_order_id: incomingOrder.id,
                 qunatity: qunatity_traded,
                 matched_order_email: buyOrders[i]!.email,
+                matched_user_id: buyOrders[i]!.user_id,
                 price: Number(buyOrders[i]!.price),
                 buy_quantity_remaining: Number(buyOrders[i]!.remaining_quantity),
                 sell_quantity_remaining: Number(copyObject.remaining_quantity)
@@ -150,6 +152,7 @@ export async function matchSellOrders(incomingOrder: Order) {
         event: "TradeExecuted",
         orderSide: copyObject.side,
         orderId: copyObject.id,
+        user_id: copyObject.user_id,
         orderStatus: copyObject.status,
         remaining_quantity: Number(copyObject.remaining_quantity)
     }
@@ -230,6 +233,7 @@ export async function matchBuyOrder(incomingOrder: Order) {
                 sell_order_id: sellOrders[i]!.id,
                 qunatity: qunatity_traded,
                 matched_order_email: sellOrders[i]!.email,
+                matched_user_id: sellOrders[i]!.user_id,
                 price: Number(sellOrders[i]!.price),
                 buy_quantity_remaining: Number(copyObject.remaining_quantity),
                 sell_quantity_remaining: Number(sellOrders[i]!.remaining_quantity)
@@ -275,6 +279,7 @@ export async function matchBuyOrder(incomingOrder: Order) {
         event: "TradeExecuted",
         orderSide: copyObject.side,
         orderId: copyObject.id,
+        user_id: copyObject.user_id,
         orderStatus: copyObject.status
     }
     // console.log(final_trade_object)
