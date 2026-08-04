@@ -11,6 +11,7 @@ import { Transaction_Status } from "@prisma/client"
 import { prisma } from './db.js'
 import { Decimal } from "@prisma/client/runtime/client";
 import { WalletTopUpPdf } from "./helpers/pdf.js";
+import tradeRouter from "./routes/tardes.route.js";
 
 
 dotenv.config()
@@ -160,6 +161,7 @@ app.use(express.json())
 app.use('/api/v1/auth', authRouter)
 app.use('/api/v1/wallet', walletRouter)
 app.use('/api/v1/order', orderRouter)
+app.use('/api/v1/trade', tradeRouter)
 export const redisClient = createClient()
 async function startServer() {
     try {
