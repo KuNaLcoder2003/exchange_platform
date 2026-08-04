@@ -13,6 +13,7 @@ export type Trade = {
     buy_quantity_remaining: Number
     sell_quantity_remaining: Number
     matched_order_email: string
+    matched_user_id: string
 }
 export async function createTrade(tardeObject: Trade) {
     return prisma.$transaction(async (tx) => {
