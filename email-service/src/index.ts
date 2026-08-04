@@ -426,10 +426,10 @@ const TransactionMailBody = (user_name: string, user_id: string, amount: Number,
 </html>`
 }
 
+await redisClient.connect()
+console.log('Connected To redis')
 
 async function pickMailJobs() {
-    await redisClient.connect()
-    console.log('Connected To redis')
 
     try {
 
