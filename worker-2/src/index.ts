@@ -18,6 +18,7 @@ type TradeSubscribed = {
     orderSide: "SELL" | "BUY";
     orderId: string;
     orderStatus: OrderStatus
+    user_id: string,
     remaining_quantity: Number
 }
 
@@ -43,6 +44,7 @@ async function pickTrades() {
                     if (tarde_object.orderSide == "BUY") {
                         await updateOrder(tarde_object.orderId, new Decimal(Number(tarde_object.remaining_quantity)), tarde_object.orderStatus)
                         let updated_sell_orders = await Promise.allSettled(tardes.map(async (trade) => {
+                            // await redisClient.lPush('Wallet_Update', JSON.stringify({ user_id: trade.matched_order_email, side: "SELL", amount: Number(trade.price) * Number(trade.qunatity) }))
                             return await updateOrder(trade.sell_order_id, new Decimal(Number(trade.sell_quantity_remaining)), (trade.sell_quantity_remaining > tarde_object.remaining_quantity ? "PARTIALLY_FILLED" : "FILLED"))
                         }))
                         let failed: any[] = []
